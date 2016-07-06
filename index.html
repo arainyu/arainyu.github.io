@@ -1,1 +1,30 @@
-test
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Test</title>
+	<link rel="manifest" href="manifest.json" />
+</head>
+<body>
+	<h1>Test</h1>
+	<script>
+	var options = {
+		type: "basic",
+		title: "重要通知",
+		message: "其实就是刷存在感而已。",
+		iconUrl: "icon128.png" //图标的URL，可选
+	};
+	chrome.notifications.create("这条通知的ID", options, function(notificationId){
+		//创建成功后的回调函数
+	});
+	
+	chrome.notifications.onClicked.addListener(function(notificationId){
+		console.log('有一条通知被点击了，其 ID 为：' + notificationId);
+
+		//点击后立即清除这条通知
+		chrome.notifications.clear(notificationId, function(wasCleared) {});
+	});
+	</script>
+</body>
+</html>
