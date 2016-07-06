@@ -1,30 +1,58 @@
-<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html data-ng-app>
 <head>
-    <meta charset="utf-8" />
-    <title>Test</title>
-	<link rel="manifest" href="manifest.json" />
-</head>
-<body>
-	<h1>Test</h1>
-	<script>
-	var options = {
-		type: "basic",
-		title: "重要通知",
-		message: "其实就是刷存在感而已。",
-		iconUrl: "icon128.png" //图标的URL，可选
-	};
-	chrome.notifications.create("这条通知的ID", options, function(notificationId){
-		//创建成功后的回调函数
-	});
-	
-	chrome.notifications.onClicked.addListener(function(notificationId){
-		console.log('有一条通知被点击了，其 ID 为：' + notificationId);
+    <title></title>
+    <link href="notifications.css" type="text/css" rel="stylesheet"/>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular.min.js"></script>
+    <script type="text/javascript" src="desktop-notify-min.js"></script>
+    <script>
+        function NotificationCenter($scope) {
+            var permissionLevels = {};
+            permissionLevels[notify.PERMISSION_GRANTED] = 0;
+            permissionLevels[notify.PERMISSION_DEFAULT] = 1;
+            permissionLevels[notify.PERMISSION_DENIED] = 2;
 
-		//点击后立即清除这条通知
-		chrome.notifications.clear(notificationId, function(wasCleared) {});
-	});
-	</script>
+            $scope.isSupported = notify.isSupported;
+            $scope.permissionLevel = permissionLevels[notify.permissionLevel()];
+
+            $scope.getClassName = function() {
+                if ($scope.permissionLevel === 0) {
+                    return "allowed"
+                } else if ($scope.permissionLevel === 1) {
+                    return "default"
+                } else {
+                    return "denied"
+                }
+            }
+
+            $scope.callback = function() {
+                console.log("test");
+            }
+
+            $scope.requestPermissions = function() {
+                notify.requestPermission(function() {
+                    $scope.$apply($scope.permissionLevel = permissionLevels[notify.permissionLevel()]);
+                })
+            }
+        }
+
+        function show() {
+            notify.createNotification("Notification", {body:"Body", icon: "alert.ico"})
+        }
+    </script>
+</head>
+<body data-ng-controller="NotificationCenter">
+    <div class="warningMsg" data-ng-show="!isSupported" style="display: none;">
+        Desktop notifications are currently not supported for your browser.
+        <p>
+        Open the page in Chrome(version 23+), Safari(version6+), Firefox(with ff-html5notifications plugin installed) and IE9+.
+    </div>
+
+    <a class="notificationLevel" ng-class="getClassName()" data-ng-click="requestPermissions()" data-ng-pluralize data-count="permissionLevel" when="{
+                                                                '0': 'Notifications allowed.',
+                                                                '1': 'Notifications not allowed. (click to enable)',
+                                                                '2': 'Notifications denied. (Change notifications permission in you browser\'s settings)'}">
+    </a>
+
+    <button onclick="show()">Show notification</button>
 </body>
 </html>
